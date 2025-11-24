@@ -8,25 +8,29 @@ const LoyaltyLog = require('./LoyaltyLog');
 
 // --- Relaciones ---
 
-// Categoría -> Productos
+// 1. Categoría <-> Productos
 Category.hasMany(Product, { foreignKey: 'categoria_id' });
 Product.belongsTo(Category, { foreignKey: 'categoria_id' });
 
-// Usuario -> Pedidos
+// 2. Usuario <-> Pedidos
 User.hasMany(Order, { foreignKey: 'usuario_id' });
 Order.belongsTo(User, { foreignKey: 'usuario_id' });
 
-// Pedido -> Items
+// 3. Pedido <-> Items (Detalle)
 Order.hasMany(OrderItem, { foreignKey: 'pedido_id', as: 'items' });
 OrderItem.belongsTo(Order, { foreignKey: 'pedido_id' });
 
-// Producto -> Items
+// 4. Producto <-> Items
 Product.hasMany(OrderItem, { foreignKey: 'producto_id' });
 OrderItem.belongsTo(Product, { foreignKey: 'producto_id' });
 
-// Usuario -> Lealtad
+// 5. Usuario <-> Lealtad
 User.hasMany(LoyaltyLog, { foreignKey: 'usuario_id' });
 LoyaltyLog.belongsTo(User, { foreignKey: 'usuario_id' });
+
+// 6. Pedido <-> Lealtad (¡ESTA FALTABA!)
+Order.hasMany(LoyaltyLog, { foreignKey: 'pedido_id' });
+LoyaltyLog.belongsTo(Order, { foreignKey: 'pedido_id' });
 
 // Exportar modelos y la conexión
 module.exports = {
