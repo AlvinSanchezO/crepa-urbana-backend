@@ -11,7 +11,10 @@ const Order = sequelize.define('Order', {
   total_pagar: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
   puntos_ganados: { type: DataTypes.INTEGER, defaultValue: 0 },
   metodo_pago: DataTypes.STRING,
-  fecha_creacion: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+  fecha_creacion: { 
+    type: DataTypes.DATE 
+    // SE ELIMINÓ defaultValue PARA QUE SQL SERVER LO MANEJE
+  }
 }, { tableName: 'orders', timestamps: false });
 
 module.exports = Order;

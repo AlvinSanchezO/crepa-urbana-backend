@@ -29,20 +29,22 @@ const User = sequelize.define('User', {
     defaultValue: 0
   },
   fecha_registro: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
+    type: DataTypes.DATE
+    // SE ELIMINÓ 'defaultValue: DataTypes.NOW' 
+    // Dejamos que SQL Server se encargue de poner la fecha con GETDATE()
   }
 }, {
   tableName: 'users',
   timestamps: false,
   hooks: {
-    // Encriptar contraseña antes de guardar
+    // Encriptar contraseña antes de guardar (Registro)
     beforeCreate: async (user) => {
       if (user.password) {
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(user.password, salt);
       }
     },
+    // Encriptar contraseña si se modifica (Actualización)
     beforeUpdate: async (user) => {
       if (user.changed('password')) {
         const salt = await bcrypt.genSalt(10);
