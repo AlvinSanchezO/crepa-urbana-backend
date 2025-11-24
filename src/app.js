@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 
@@ -24,12 +25,17 @@ app.use(express.json());
 // --- Documentación Swagger ---
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// --- Endpoint Base: Status ---
+// --- Rutas API ---
+
+// 1. Endpoint de Estado (Status)
 app.get('/api/status', (req, res) => {
   res.json({ 
     message: 'API funcionando correctamente',
     timestamp: new Date().toISOString() 
   });
 });
+
+// 2. Módulo de Autenticación
+app.use('/api/auth', authRoutes);
 
 module.exports = app;
