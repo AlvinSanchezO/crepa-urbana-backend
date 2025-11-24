@@ -4,11 +4,13 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 const authRoutes = require('./routes/authRoutes');
 
+// --- IMPORTAR MIDDLEWARES ---
+const requestLogger = require('./middlewares/requestLogger');
+const errorHandler = require('./middlewares/errorMiddleware');
+
 const app = express();
 
-// --- Configuración de CORS ---
 const whitelist = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
-
 const corsOptions = {
   origin: (origin, callback) => {
     if (!origin || whitelist.includes('*') || whitelist.includes(origin)) {
@@ -19,23 +21,21 @@ const corsOptions = {
   },
 };
 
+// 1. Middlewares Globales
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(requestLogger); // <--- Logger conectado
 
-// --- Documentación Swagger ---
+// 2. Documentación
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// --- Rutas API ---
-
-// 1. Endpoint de Estado (Status)
+// 3. Rutas
 app.get('/api/status', (req, res) => {
-  res.json({ 
-    message: 'API funcionando correctamente',
-    timestamp: new Date().toISOString() 
-  });
+  res.json({ message: 'API funcionando correctamente', timestamp: new Date().toISOString() });
 });
-
-// 2. Módulo de Autenticación
 app.use('/api/auth', authRoutes);
+
+// 4. Middleware de Manejo de Errores (SIEMPRE AL FINAL)
+app.use(errorHandler); // <--- Manejador de errores conectado
 
 module.exports = app;
