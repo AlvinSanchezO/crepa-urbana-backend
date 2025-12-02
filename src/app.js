@@ -8,6 +8,7 @@ const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const loyaltyRoutes = require('./routes/loyaltyRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 // --- Importar Middlewares Personalizados ---
 const requestLogger = require('./middlewares/requestLogger');
@@ -51,6 +52,7 @@ app.use('/api/auth', authRoutes);       // Registro y Login
 app.use('/api/products', productRoutes); // Menú y Categorías
 app.use('/api/orders', orderRoutes);     // Pedidos y Transacciones
 app.use('/api/loyalty', loyaltyRoutes); // Programa de Lealtad
+app.use('/api/dashboard', dashboardRoutes);
 
 // 4. Middleware de Manejo de Errores (SIEMPRE AL FINAL)
 app.use(errorHandler);
