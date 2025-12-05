@@ -10,19 +10,17 @@ const orderRoutes = require('./routes/orderRoutes');
 const loyaltyRoutes = require('./routes/loyaltyRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const userRoutes = require('./routes/userRoutes');
+// const paymentRoutes = require('./routes/paymentRoutes'); // <--- ELIMINADO/COMENTADO
 
-// --- Importar Middlewares Personalizados ---
+// --- Importar Middlewares ---
 const requestLogger = require('./middlewares/requestLogger');
 const errorHandler = require('./middlewares/errorMiddleware');
 
 const app = express();
 
-// --- Configuración de CORS ---
 const whitelist = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
-
 const corsOptions = {
   origin: (origin, callback) => {
-    // Permitir solicitudes sin origen (como Postman) o si el origen está en la lista blanca
     if (!origin || whitelist.includes('*') || whitelist.includes(origin)) {
       callback(null, true);
     } else {
@@ -31,32 +29,24 @@ const corsOptions = {
   },
 };
 
-// 1. Middlewares Globales
 app.use(cors(corsOptions));
-app.use(express.json()); // Habilitar lectura de JSON en el body
-app.use(requestLogger);  // Registrar cada petición en consola
+app.use(express.json());
+app.use(requestLogger);
 
-// 2. Documentación Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// 3. Rutas de la API
-// Endpoint Base (Health Check)
 app.get('/api/status', (req, res) => {
-  res.json({ 
-    message: 'API funcionando correctamente', 
-    timestamp: new Date().toISOString() 
-  });
+  res.json({ message: 'API funcionando correctamente', timestamp: new Date().toISOString() });
 });
 
-// Módulos Funcionales
-app.use('/api/auth', authRoutes);       // Registro y Login
-app.use('/api/products', productRoutes); // Menú y Categorías
-app.use('/api/orders', orderRoutes);     // Pedidos y Transacciones
-app.use('/api/loyalty', loyaltyRoutes); // Programa de Lealtad
+app.use('/api/auth', authRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/loyalty', loyaltyRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/users', userRoutes);       // Gestión de Usuarios
+app.use('/api/users', userRoutes);
+// app.use('/api/payments', paymentRoutes); // <--- ELIMINADO/COMENTADO
 
-// 4. Middleware de Manejo de Errores (SIEMPRE AL FINAL)
 app.use(errorHandler);
 
 module.exports = app;
