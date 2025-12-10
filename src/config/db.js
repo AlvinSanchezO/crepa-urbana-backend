@@ -10,7 +10,7 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     dialect: 'mssql', // Indicamos que usamos SQL Server
-    logging: false,   // Cambiar a console.log para ver las consultas SQL en terminal
+    logging: console.log,   // Mostrar consultas SQL en terminal
     dialectOptions: {
       options: {
         // Configuración necesaria para conexiones locales/Azure

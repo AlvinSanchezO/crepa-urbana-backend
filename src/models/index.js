@@ -5,6 +5,7 @@ const Product = require('./Product');
 const Order = require('./Order');
 const OrderItem = require('./OrderItem');
 const LoyaltyLog = require('./LoyaltyLog');
+const Transaction = require('./Transaction');
 
 // --- Relaciones ---
 
@@ -28,9 +29,13 @@ OrderItem.belongsTo(Product, { foreignKey: 'producto_id' });
 User.hasMany(LoyaltyLog, { foreignKey: 'usuario_id' });
 LoyaltyLog.belongsTo(User, { foreignKey: 'usuario_id' });
 
-// 6. Pedido <-> Lealtad (¡ESTA FALTABA!)
-Order.hasMany(LoyaltyLog, { foreignKey: 'pedido_id' });
-LoyaltyLog.belongsTo(Order, { foreignKey: 'pedido_id' });
+// 6. Usuario <-> Transacciones
+User.hasMany(Transaction, { foreignKey: 'usuario_id' });
+Transaction.belongsTo(User, { foreignKey: 'usuario_id' });
+
+// 7. Pedido <-> Transacciones
+Order.hasMany(Transaction, { foreignKey: 'pedido_id' });
+Transaction.belongsTo(Order, { foreignKey: 'pedido_id' });
 
 // Exportar modelos y la conexión
 module.exports = {
@@ -40,5 +45,6 @@ module.exports = {
   Product,
   Order,
   OrderItem,
-  LoyaltyLog
+  LoyaltyLog,
+  Transaction
 };

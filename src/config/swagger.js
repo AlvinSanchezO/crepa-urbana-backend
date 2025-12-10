@@ -87,6 +87,34 @@ const options = {
               example: 'en_preparacion' 
             }
           }
+        },
+        // Esquema: Crear Payment Intent
+        PaymentIntentCreate: {
+          type: 'object',
+          required: ['amount', 'description'],
+          properties: {
+            amount: { type: 'number', example: 45.99, description: 'Monto en dólares' },
+            description: { type: 'string', example: 'Pago de orden de crepas' },
+            orderId: { type: 'integer', example: 1, description: 'ID de la orden (opcional)' }
+          }
+        },
+        // Esquema: Confirmar Payment
+        PaymentConfirm: {
+          type: 'object',
+          required: ['paymentIntentId'],
+          properties: {
+            paymentIntentId: { type: 'string', example: 'pi_xxxxxxxxxxxxx' },
+            orderId: { type: 'integer', example: 1, description: 'ID de la orden (opcional)' }
+          }
+        },
+        // Esquema: Refund
+        PaymentRefund: {
+          type: 'object',
+          required: ['paymentIntentId'],
+          properties: {
+            paymentIntentId: { type: 'string', example: 'pi_xxxxxxxxxxxxx' },
+            amount: { type: 'number', example: 45.99, description: 'Monto a reembolsar (opcional, si no se envía es completo)' }
+          }
         }
       }
     },
@@ -238,6 +266,149 @@ const options = {
                       movimientos: [
                         { tipo_movimiento: 'acumulacion', cantidad: 15, fecha: '2023-11-24T10:00:00Z' }
                       ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+
+      // --- PAGOS (STRIPE) ---
+      '/api/payments/create-intent': {
+        post: {
+          summary: 'Crear Payment Intent (Iniciar Pago)',
+          tags: ['Pagos'],
+          security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/PaymentIntentCreate' }
+              }
+            }
+          },
+          responses: {
+            201: {
+              description: 'Payment Intent creado exitosamente',
+              content: {
+                'application/json': {
+                  example: {
+                    success: true,
+                    message: 'Payment Intent creado',
+                    data: {
+                      clientSecret: 'pi_xxxxx_secret_yyyy',
+                      transactionId: 5,
+                      paymentIntentId: 'pi_xxxxxxxxxxxxx'
+                    }
+                  }
+                }
+              }
+            },
+            400: { description: 'Datos inválidos' }
+          }
+        }
+      },
+      '/api/payments/confirm': {
+        post: {
+          summary: 'Confirmar Pago',
+          tags: ['Pagos'],
+          security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/PaymentConfirm' }
+              }
+            }
+          },
+          responses: {
+            200: {
+              description: 'Pago confirmado o en proceso',
+              content: {
+                'application/json': {
+                  example: {
+                    success: true,
+                    message: 'Pago confirmado exitosamente',
+                    status: 'succeeded',
+                    amount: 45.99,
+                    transactionId: 5,
+                    orderId: 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      '/api/payments/status/{paymentIntentId}': {
+        get: {
+          summary: 'Verificar estado de un pago',
+          tags: ['Pagos'],
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { in: 'path', name: 'paymentIntentId', required: true, schema: { type: 'string' }, example: 'pi_xxxxxxxxxxxxx' }
+          ],
+          responses: {
+            200: { description: 'Estado actual del pago' }
+          }
+        }
+      },
+      '/api/payments/my-transactions': {
+        get: {
+          summary: 'Ver mis transacciones',
+          tags: ['Pagos'],
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { in: 'query', name: 'limit', schema: { type: 'integer', default: 50 } },
+            { in: 'query', name: 'offset', schema: { type: 'integer', default: 0 } }
+          ],
+          responses: {
+            200: { description: 'Historial de transacciones del usuario' }
+          }
+        }
+      },
+      '/api/payments/refund': {
+        post: {
+          summary: 'Procesar reembolso (Admin)',
+          tags: ['Pagos'],
+          security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/PaymentRefund' }
+              }
+            }
+          },
+          responses: {
+            200: { description: 'Reembolso procesado' },
+            403: { description: 'No autorizado (requiere ser Admin)' }
+          }
+        }
+      },
+      '/api/payments/revenue-stats': {
+        get: {
+          summary: 'Obtener estadísticas de ingresos (Admin)',
+          tags: ['Pagos'],
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { in: 'query', name: 'startDate', required: true, schema: { type: 'string', format: 'date' }, example: '2024-01-01' },
+            { in: 'query', name: 'endDate', required: true, schema: { type: 'string', format: 'date' }, example: '2024-12-31' }
+          ],
+          responses: {
+            200: {
+              description: 'Estadísticas de ingresos en el período',
+              content: {
+                'application/json': {
+                  example: {
+                    success: true,
+                    data: {
+                      periodo: { desde: '2024-01-01', hasta: '2024-12-31' },
+                      transacciones_exitosas: 42,
+                      ingresos_total: '1500.50',
+                      ingresos_promedio: '35.73'
                     }
                   }
                 }

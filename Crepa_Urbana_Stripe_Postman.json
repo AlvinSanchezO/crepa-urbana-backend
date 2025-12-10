@@ -1,0 +1,392 @@
+{
+  "info": {
+    "_postman_id": "crepa-urbana-stripe",
+    "name": "Crepa Urbana - Stripe Payments",
+    "description": "Colección para probar la integración de Stripe en Crepa Urbana",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Juan Pérez\",\n  \"email\": \"juan@example.com\",\n  \"password\": \"password123\",\n  \"telefono\": \"5551234567\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/register",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"token\", jsonData.token);",
+                  "    pm.environment.set(\"usuario_id\", jsonData.usuario_id);",
+                  "    console.log('Token guardado:', jsonData.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"juan@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Create Payment Intent",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"payment_intent_id\", jsonData.payment_intent_id);",
+                  "    pm.environment.set(\"client_secret\", jsonData.client_secret);",
+                  "    console.log('Payment Intent ID:', jsonData.payment_intent_id);",
+                  "    console.log('Client Secret:', jsonData.client_secret);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 2500,\n  \"email\": \"juan@example.com\",\n  \"descripcion\": \"Pago de pedido de crepas\",\n  \"metodo_pago\": \"tarjeta\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/payments/create-intent",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "payments",
+                "create-intent"
+              ]
+            },
+            "description": "Crea un Payment Intent en Stripe. Responde con:\n- payment_intent_id: ID del Payment Intent\n- client_secret: Cliente secreto para confirmar pago en frontend\n- stripe_public_key: Clave pública de Stripe para Stripe.js"
+          }
+        },
+        {
+          "name": "Confirm Payment",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Este endpoint debería ser llamado DESPUÉS de que el cliente complete el pago en Stripe",
+                  "// El client_secret se obtiene del Payment Intent creado anteriormente"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_intent_id\": \"{{payment_intent_id}}\",\n  \"pedido_id\": null,\n  \"metodo_pago\": \"tarjeta\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/payments/confirm",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "payments",
+                "confirm"
+              ]
+            },
+            "description": "Confirma que el pago fue completado en el frontend. Valida el monto y actualiza el estado de la transacción."
+          }
+        },
+        {
+          "name": "Check Payment Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/payments/status/{{payment_intent_id}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "payments",
+                "status",
+                "{{payment_intent_id}}"
+              ]
+            },
+            "description": "Verifica el estado actual de un Payment Intent"
+          }
+        },
+        {
+          "name": "Get My Transactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/payments/my-transactions?page=1&limit=10",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "payments",
+                "my-transactions"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Obtiene el historial de transacciones del usuario autenticado"
+          }
+        },
+        {
+          "name": "Refund Payment (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_intent_id\": \"{{payment_intent_id}}\",\n  \"razon_reembolso\": \"Cambio de opinión\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/payments/refund",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "payments",
+                "refund"
+              ]
+            },
+            "description": "Reembolsa un pago (solo admin). Solo funciona con pagos sucesivos."
+          }
+        },
+        {
+          "name": "Get Revenue Stats (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/payments/revenue-stats?dias=30",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "payments",
+                "revenue-stats"
+              ],
+              "query": [
+                {
+                  "key": "dias",
+                  "value": "30"
+                }
+              ]
+            },
+            "description": "Obtiene estadísticas de ingresos de los últimos N días (solo admin)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Test Endpoints",
+      "item": [
+        {
+          "name": "API Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/status",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Swagger Docs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api-docs",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api-docs"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "usuario_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "payment_intent_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "client_secret",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
