@@ -417,6 +417,132 @@ const options = {
           }
         }
       }
+    },
+    '/api/users': {
+      get: {
+        summary: 'Obtener lista de usuarios clientes',
+        description: 'Admin puede obtener lista de todos los usuarios con rol cliente',
+        security: [{ bearerAuth: [] }],
+        tags: ['Users'],
+        responses: {
+          200: {
+            description: 'Lista de usuarios obtenida correctamente',
+            content: {
+              'application/json': {
+                example: [
+                  {
+                    id: 1,
+                    nombre: 'Juan Pérez',
+                    email: 'juan@mail.com',
+                    telefono: '555-1234',
+                    puntos_actuales: 150
+                  }
+                ]
+              }
+            }
+          },
+          401: { description: 'No autenticado' },
+          403: { description: 'No autorizado (requiere ser admin)' }
+        }
+      }
+    },
+    '/api/users/{id}': {
+      get: {
+        summary: 'Obtener detalles de un usuario',
+        description: 'Admin puede obtener detalles completos de un usuario específico',
+        security: [{ bearerAuth: [] }],
+        tags: ['Users'],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'integer' },
+            description: 'ID del usuario'
+          }
+        ],
+        responses: {
+          200: {
+            description: 'Detalles del usuario',
+            content: {
+              'application/json': {
+                example: {
+                  success: true,
+                  data: {
+                    id: 1,
+                    nombre: 'Juan Pérez',
+                    email: 'juan@mail.com',
+                    telefono: '555-1234',
+                    rol: 'cliente',
+                    puntos_actuales: 150,
+                    fecha_registro: '2024-01-15T10:30:00Z'
+                  }
+                }
+              }
+            }
+          },
+          404: { description: 'Usuario no encontrado' },
+          401: { description: 'No autenticado' },
+          403: { description: 'No autorizado' }
+        }
+      },
+      delete: {
+        summary: 'Eliminar un usuario',
+        description: 'Admin puede eliminar un usuario. No se puede eliminar a sí mismo.',
+        security: [{ bearerAuth: [] }],
+        tags: ['Users'],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'integer' },
+            description: 'ID del usuario a eliminar'
+          }
+        ],
+        responses: {
+          200: {
+            description: 'Usuario eliminado correctamente',
+            content: {
+              'application/json': {
+                example: {
+                  success: true,
+                  message: 'Usuario eliminado correctamente',
+                  data: {
+                    usuario_id: 5,
+                    usuario_eliminado: 'usuario@mail.com',
+                    fecha_eliminacion: '2024-12-10T15:30:00Z'
+                  }
+                }
+              }
+            }
+          },
+          400: {
+            description: 'Solicitud inválida',
+            content: {
+              'application/json': {
+                example: {
+                  success: false,
+                  message: 'No puedes eliminarte a ti mismo'
+                }
+              }
+            }
+          },
+          404: {
+            description: 'Usuario no encontrado',
+            content: {
+              'application/json': {
+                example: {
+                  success: false,
+                  message: 'Usuario no encontrado'
+                }
+              }
+            }
+          },
+          401: { description: 'No autenticado' },
+          403: { description: 'No autorizado (requiere ser admin)' }
+        }
+      }
     }
   },
   apis: [], // No buscar en archivos, todo está aquí definido
