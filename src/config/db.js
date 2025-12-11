@@ -9,14 +9,11 @@ const sequelize = new Sequelize(
   {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
-    dialect: 'mssql', // Indicamos que usamos SQL Server
+    dialect: 'postgres', // Usando PostgreSQL
     logging: console.log,   // Mostrar consultas SQL en terminal
     dialectOptions: {
-      options: {
-        // Configuración necesaria para conexiones locales/Azure
-        encrypt: false, 
-        trustServerCertificate: true, 
-      },
+      // Configuración para PostgreSQL
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
     },
   }
 );
